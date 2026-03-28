@@ -21,11 +21,73 @@ async function safeJsonParse(response) {
   }
 }
 
-export async function getRecords(user, month) {
+export async function login(username, password) {
+  const response = await fetch(API_BASE_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8',
+    },
+    body: JSON.stringify({
+      action: 'login',
+      username,
+      password,
+    }),
+  });
+
+  const data = await safeJsonParse(response);
+
+  if (!data.success) {
+    throw new Error(data.message || 'No se pudo iniciar sesión.');
+  }
+
+  return data;
+}
+
+export async function validateSession(sessionToken) {
+  const url = new URL(API_BASE_URL);
+  url.searchParams.set('action', 'validateSession');
+  url.searchParams.set('sessionToken', sessionToken);
+
+  const response = await fetch(url.toString(), {
+    method: 'GET',
+  });
+
+  const data = await safeJsonParse(response);
+
+  if (!data.success) {
+    throw new Error(data.message || 'Sesión inválida.');
+  }
+
+  return data;
+}
+
+export async function logout(sessionToken) {
+  const response = await fetch(API_BASE_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'text/plain;charset=utf-8',
+    },
+    body: JSON.stringify({
+      action: 'logout',
+      sessionToken,
+    }),
+  });
+
+  const data = await safeJsonParse(response);
+
+  if (!data.success) {
+    throw new Error(data.message || 'No se pudo cerrar sesión.');
+  }
+
+  return data;
+}
+
+export async function getRecords(user, month, sessionToken) {
   const url = new URL(API_BASE_URL);
   url.searchParams.set('action', 'readRecords');
   url.searchParams.set('user', user);
   url.searchParams.set('month', month);
+  url.searchParams.set('sessionToken', sessionToken);
 
   const response = await fetch(url.toString(), {
     method: 'GET',
@@ -44,18 +106,17 @@ export async function getRecords(user, month) {
   }));
 }
 
-export async function createRecord(payload) {
-  const body = {
-    action: 'createRecord',
-    ...payload,
-  };
-
+export async function createRecord(payload, sessionToken) {
   const response = await fetch(API_BASE_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'text/plain;charset=utf-8',
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      action: 'createRecord',
+      sessionToken,
+      ...payload,
+    }),
   });
 
   const data = await safeJsonParse(response);
@@ -67,18 +128,17 @@ export async function createRecord(payload) {
   return data;
 }
 
-export async function updateRecord(payload) {
-  const body = {
-    action: 'updateRecord',
-    ...payload,
-  };
-
+export async function updateRecord(payload, sessionToken) {
   const response = await fetch(API_BASE_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'text/plain;charset=utf-8',
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      action: 'updateRecord',
+      sessionToken,
+      ...payload,
+    }),
   });
 
   const data = await safeJsonParse(response);
@@ -90,18 +150,17 @@ export async function updateRecord(payload) {
   return data;
 }
 
-export async function deleteRecord(recordId) {
-  const body = {
-    action: 'deleteRecord',
-    id: recordId,
-  };
-
+export async function deleteRecord(recordId, sessionToken) {
   const response = await fetch(API_BASE_URL, {
     method: 'POST',
     headers: {
       'Content-Type': 'text/plain;charset=utf-8',
     },
-    body: JSON.stringify(body),
+    body: JSON.stringify({
+      action: 'deleteRecord',
+      sessionToken,
+      id: recordId,
+    }),
   });
 
   const data = await safeJsonParse(response);

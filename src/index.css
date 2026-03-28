@@ -870,4 +870,7 @@ img {
   .records-overlay__text {
     font-size: 0.95rem;
   }
+  .login-card {
+  max-width: 520px;
+}
 }
